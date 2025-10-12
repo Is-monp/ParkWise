@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  /* Light Mode*/
+  --background: #f8f9fa;
+  --foreground: #1a1f2e;
+  --card: #ffffff;
+  --card-foreground: #1a1f2e;
+  --popover: #ffffff;
+  --popover-foreground: #1a1f2e;
+  --primary: #7bc96f;
+  --primary-foreground: #ffffff;
+  --secondary: #e8f5e7;
+  --secondary-foreground: #1a1f2e;
+  --muted: #f1f3f5;
+  --muted-foreground: #6c757d;
+  --accent: #e8f5e7;
+  --accent-foreground: #1a1f2e;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: rgba(0, 0, 0, 0.05);
+  --input-background: #f8f9fa;
+  --switch-background: #cbd5e0;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #7bc96f;
+  --chart-1: #7bc96f;
+  --chart-2: #4ade80;
+  --chart-3: #22c55e;
+  --chart-4: #10b981;
+  --chart-5: #059669;
+  --radius: 0.75rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1a1f2e;
+  --sidebar-primary: #7bc96f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f3f5;
+  --sidebar-accent-foreground: #1a1f2e;
+  --sidebar-border: rgba(0, 0, 0, 0.08);
+  --sidebar-ring: #7bc96f;
+}
+
+.dark {
+  /* Dark Mode */
+  --background: #0f1419;
+  --foreground: #e8eaed;
+  --card: #1a1f2e;
+  --card-foreground: #e8eaed;
+  --popover: #1a1f2e;
+  --popover-foreground: #e8eaed;
+  --primary: #8fd14f;
+  --primary-foreground: #0f1419;
+  --secondary: #252b3a;
+  --secondary-foreground: #e8eaed;
+  --muted: #252b3a;
+  --muted-foreground: #9ca3af;
+  --accent: #252b3a;
+  --accent-foreground: #e8eaed;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.05);
+  --input-background: #252b3a;
+  --switch-background: #3f4654;
+  --ring: #8fd14f;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: #8fd14f;
+  --chart-2: #7bc96f;
+  --chart-3: #6ab85f;
+  --chart-4: #59a74f;
+  --chart-5: #48963f;
+  --sidebar: #1a1f2e;
+  --sidebar-foreground: #e8eaed;
+  --sidebar-primary: #8fd14f;
+  --sidebar-primary-foreground: #0f1419;
+  --sidebar-accent: #252b3a;
+  --sidebar-accent-foreground: #e8eaed;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #8fd14f;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Custom Scrollbar Styles */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--border) 80%, var(--foreground) 20%);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: color-mix(in oklab, var(--border) 60%, var(--foreground) 40%);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Dark mode scrollbar adjustments */
+.dark ::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--border) 90%, white 10%);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--border) 70%, white 30%);
+}
+
+.dark ::-webkit-scrollbar-thumb:active {
+  background: color-mix(in oklab, var(--border) 50%, white 50%);
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
