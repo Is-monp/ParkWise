@@ -44,7 +44,7 @@ const mockRecords: ParkingRecord[] = [
     id: "3",
     licensePlate: "ABC-1234",
     entryTime: "2025-10-10 09:00",
-    exitTime: "2025-10-10 18:30",
+    exitTime: null,
     duration: "9h 30m",
     cost: 57.00,
     status: 'active'
