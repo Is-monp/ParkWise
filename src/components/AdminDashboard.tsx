@@ -73,8 +73,6 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newCar, setNewCar] = useState({
     licensePlate: "",
-    ownerName: "",
-    ownerEmail: "",
     location: ""
   });
 
@@ -82,15 +80,15 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
     const car: ParkedCar = {
       id: String(Date.now()),
       licensePlate: newCar.licensePlate,
-      ownerName: newCar.ownerName,
-      ownerEmail: newCar.ownerEmail,
-      entryTime: new Date().toLocaleString('en-US', { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit', 
-        hour: '2-digit', 
+      ownerName: "Unknown",
+      ownerEmail: "unknown@example.com",
+      entryTime: new Date().toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
         minute: '2-digit',
-        hour12: false 
+        hour12: false
       }).replace(',', ''),
       location: newCar.location,
       duration: "0h 0m",
@@ -98,7 +96,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
     };
     setParkedCars([...parkedCars, car]);
     setIsAddDialogOpen(false);
-    setNewCar({ licensePlate: "", ownerName: "", ownerEmail: "", location: "" });
+    setNewCar({ licensePlate: "", location: "" });
   };
 
   const handleMarkAsExited = (carId: string) => {
@@ -203,7 +201,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
                     <DialogTitle>Register New Car</DialogTitle>
-                    <DialogDescription>Enter the details of the car entering the parking lot</DialogDescription>
+                    <DialogDescription>Enter the license plate and parking location</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
@@ -213,25 +211,6 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
                         placeholder="ABC-1234"
                         value={newCar.licensePlate}
                         onChange={(e) => setNewCar({ ...newCar, licensePlate: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="ownerName">Owner Name</Label>
-                      <Input
-                        id="ownerName"
-                        placeholder="John Doe"
-                        value={newCar.ownerName}
-                        onChange={(e) => setNewCar({ ...newCar, ownerName: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="ownerEmail">Owner Email</Label>
-                      <Input
-                        id="ownerEmail"
-                        type="email"
-                        placeholder="john@example.com"
-                        value={newCar.ownerEmail}
-                        onChange={(e) => setNewCar({ ...newCar, ownerEmail: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">

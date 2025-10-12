@@ -3,7 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { CreditCard, LogOut, TrendingUp, TrendingDown, Clock, Car } from "lucide-react";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "./ui/dialog";
+import { CreditCard, LogOut, TrendingUp, TrendingDown, Clock, Car, Plus, Trash2 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 
 interface ParkingRecord {
@@ -14,6 +17,13 @@ interface ParkingRecord {
   duration: string;
   cost: number;
   status: 'active' | 'completed';
+}
+
+interface UserCar {
+  id: string;
+  licensePlate: string;
+  brand: string;
+  color: string;
 }
 
 interface UserDashboardProps {
@@ -71,6 +81,16 @@ const mockRecords: ParkingRecord[] = [
 
 export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
   const [records, setRecords] = useState<ParkingRecord[]>(mockRecords);
+  const [userCars, setUserCars] = useState<UserCar[]>([
+    { id: "1", licensePlate: "ABC-1234", brand: "Toyota", color: "Blue" },
+    { id: "2", licensePlate: "XYZ-5678", brand: "Honda", color: "Red" }
+  ]);
+  const [isAddCarDialogOpen, setIsAddCarDialogOpen] = useState(false);
+  const [newCar, setNewCar] = useState({
+    licensePlate: "",
+    brand: "",
+    color: ""
+  });
 
   const totalBalance = records.reduce((sum, record) => sum + record.cost, 0);
   const unpaidBalance = records
@@ -118,6 +138,22 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
           : record
       )
     );
+  };
+
+  const handleAddCar = () => {
+    const car: UserCar = {
+      id: String(Date.now()),
+      licensePlate: newCar.licensePlate,
+      brand: newCar.brand,
+      color: newCar.color
+    };
+    setUserCars([...userCars, car]);
+    setIsAddCarDialogOpen(false);
+    setNewCar({ licensePlate: "", brand: "", color: "" });
+  };
+
+  const handleDeleteCar = (carId: string) => {
+    setUserCars(userCars.filter(car => car.id !== carId));
   };
 
   return (
@@ -196,8 +232,107 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
           </Card>
         </div>
 
-        {/* Records Table */}
-        <Card className="shadow-lg border-border/50 bg-card">
+        {/* Main Grid: Cars and Records */}
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+          {/* User Cars Table */}
+          <Card className="shadow-lg border-border/50 bg-card">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4">
+              <div>
+                <CardTitle>My Cars</CardTitle>
+                <CardDescription className="mt-1">Manage your registered vehicles</CardDescription>
+              </div>
+              <Dialog open={isAddCarDialogOpen} onOpenChange={setIsAddCarDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 w-full sm:w-auto bg-primary hover:bg-primary/90">
+                    <Plus className="h-4 w-4" />
+                    Add Car
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Register New Car</DialogTitle>
+                    <DialogDescription>Add a new car to your account</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="carLicensePlate">License Plate</Label>
+                      <Input
+                        id="carLicensePlate"
+                        placeholder="ABC-1234"
+                        value={newCar.licensePlate}
+                        onChange={(e) => setNewCar({ ...newCar, licensePlate: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="carBrand">Brand</Label>
+                      <Input
+                        id="carBrand"
+                        placeholder="Toyota"
+                        value={newCar.brand}
+                        onChange={(e) => setNewCar({ ...newCar, brand: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="carColor">Color</Label>
+                      <Input
+                        id="carColor"
+                        placeholder="Blue"
+                        value={newCar.color}
+                        onChange={(e) => setNewCar({ ...newCar, color: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleAddCar} className="bg-primary hover:bg-primary/90">Add Car</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent border-border/50">
+                      <TableHead className="whitespace-nowrap">License Plate</TableHead>
+                      <TableHead className="whitespace-nowrap">Brand</TableHead>
+                      <TableHead className="whitespace-nowrap">Color</TableHead>
+                      <TableHead className="whitespace-nowrap">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {userCars.map((car) => (
+                      <TableRow key={car.id} className="border-border/50">
+                        <TableCell className="font-medium">{car.licensePlate}</TableCell>
+                        <TableCell>{car.brand}</TableCell>
+                        <TableCell>{car.color}</TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="gap-1"
+                            onClick={() => handleDeleteCar(car.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Delete
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {userCars.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                          No cars registered yet
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Records Table */}
+          <Card className="shadow-lg border-border/50 bg-card">
           <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4">
             <div>
               <CardTitle>Parking Records</CardTitle>
@@ -261,6 +396,7 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
