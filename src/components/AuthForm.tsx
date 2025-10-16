@@ -46,15 +46,20 @@ export function AuthForm({ onLogin }: AuthFormProps) {
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        alert(`Login failed: ${data.error || "Unknown error"}`);
-        return;
+      console.log("Login response:", data);
+
+      // Si el backend devuelve solo el token
+      const token = data.token || data || data.access_token;
+
+      if (token) {
+        localStorage.setItem("token", token);
+        console.log("Token saved:", token);
+        alert("Login successful!");
+        onLogin(loginEmail, role);
+      } else {
+        alert("No token found in response :(");
       }
 
-      // Guarda el token si el backend lo devuelve
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-      }
 
       alert("Login successful!");
       onLogin(loginEmail, role);
