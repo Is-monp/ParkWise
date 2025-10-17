@@ -1,12 +1,42 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "./ui/dialog";
-import { CreditCard, LogOut, TrendingUp, TrendingDown, Clock, Car, Plus, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "./ui/dialog";
+import {
+  CreditCard,
+  LogOut,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  Car,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 
 interface ParkingRecord {
@@ -16,7 +46,8 @@ interface ParkingRecord {
   exitTime: string | null;
   duration: string;
   cost: number;
-  status: 'active' | 'completed';
+  status: "active" | "completed";
+  location: string;
 }
 
 interface UserCar {
@@ -31,131 +62,169 @@ interface UserDashboardProps {
   onLogout: () => void;
 }
 
-const mockRecords: ParkingRecord[] = [
-  {
-    id: "1",
-    licensePlate: "ABC-1234",
-    entryTime: "2025-10-12 08:30",
-    exitTime: "2025-10-12 12:45",
-    duration: "4h 15m",
-    cost: 25.50,
-    status: 'completed'
-  },
-  {
-    id: "2",
-    licensePlate: "XYZ-5678",
-    entryTime: "2025-10-11 14:20",
-    exitTime: "2025-10-11 16:30",
-    duration: "2h 10m",
-    cost: 13.00,
-    status: 'completed'
-  },
-  {
-    id: "3",
-    licensePlate: "ABC-1234",
-    entryTime: "2025-10-10 09:00",
-    exitTime: null,
-    duration: "9h 30m",
-    cost: 57.00,
-    status: 'active'
-  },
-  {
-    id: "4",
-    licensePlate: "DEF-9012",
-    entryTime: "2025-10-12 15:00",
-    exitTime: null,
-    duration: "3h 12m",
-    cost: 19.20,
-    status: 'active'
-  },
-  {
-    id: "5",
-    licensePlate: "ABC-1234",
-    entryTime: "2025-10-08 07:45",
-    exitTime: "2025-10-08 11:20",
-    duration: "3h 35m",
-    cost: 21.50,
-    status: 'completed'
-  }
-];
-
 export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
-  const [records, setRecords] = useState<ParkingRecord[]>(mockRecords);
-  const [userCars, setUserCars] = useState<UserCar[]>([
-    { id: "1", licensePlate: "ABC-1234", brand: "Toyota", color: "Blue" },
-    { id: "2", licensePlate: "XYZ-5678", brand: "Honda", color: "Red" }
-  ]);
+  const [records, setRecords] = useState<ParkingRecord[]>([]);
+  const [userCars, setUserCars] = useState<UserCar[]>([]);
   const [isAddCarDialogOpen, setIsAddCarDialogOpen] = useState(false);
   const [newCar, setNewCar] = useState({
     licensePlate: "",
     brand: "",
-    color: ""
+    color: "",
   });
 
-  const totalBalance = records.reduce((sum, record) => sum + record.cost, 0);
+  const totalBalance = records.reduce((sum, r) => sum + r.cost, 0);
   const unpaidBalance = records
-    .filter(r => r.status === 'active')
-    .reduce((sum, record) => sum + record.cost, 0);
+    .filter((r) => r.status === "active")
+    .reduce((sum, r) => sum + r.cost, 0);
 
-  const getCurrentTime = () => {
-    return new Date().toLocaleString('en-CA', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).replace(',', '');
+  const getCurrentTime = () =>
+    new Date()
+      .toLocaleString("en-CA", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+      .replace(",", "");
+
+  // ✅ FETCH records from backend
+  useEffect(() => {
+    const fetchRecords = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const res = await fetch("http://localhost:8080/view/car/UserRegisters", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        if (!data.registers) return;
+
+        // 📦 Mapeamos los registros de parqueo
+        const mappedRecords = data.registers.map((r: any) => {
+          const entry = new Date(r.entryTime);
+          const exit =
+            r.exitTime && r.exitTime !== "0001-01-01T00:00:00Z"
+              ? new Date(r.exitTime)
+              : null;
+
+          let duration = "-";
+          if (exit) {
+            const diff = Math.max(0, exit.getTime() - entry.getTime());
+            const mins = Math.floor(diff / 60000);
+            const hours = Math.floor(mins / 60);
+            const rem = mins % 60;
+            duration = `${hours}h ${rem}m`;
+          }
+
+          return {
+            id: r._id,
+            licensePlate: r.car?.placa || "Unknown",
+            entryTime: entry.toLocaleString(),
+            exitTime: exit ? exit.toLocaleString() : null,
+            duration,
+            cost: r.amount || 0,
+            status: r.paid ? "completed" : "active",
+            location: r.parkingLocation || "N/A",
+          };
+        });
+
+        setRecords(mappedRecords);
+
+        // 🚗 Extraemos los carros únicos de esos registros
+        const uniqueCarsMap = new Map<string, UserCar>();
+        for (const r of data.registers) {
+          const c = r.car;
+          if (c && !uniqueCarsMap.has(c._id)) {
+            uniqueCarsMap.set(c._id, {
+              id: c._id,
+              licensePlate: c.placa,
+              brand: c.marca,
+              color: c.color,
+            });
+          }
+        }
+
+        setUserCars(Array.from(uniqueCarsMap.values()));
+      } catch (err) {
+        console.error("❌ Error fetching records:", err);
+      }
+    };
+
+    fetchRecords();
+  }, []);
+
+
+  // 🧩 Add car to backend
+  const handleAddCar = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("⚠️ No token found. Please log in again.");
+      return;
+    }
+
+    const payload = {
+      Placa: newCar.licensePlate,
+      Marca: newCar.brand,
+      Color: newCar.color,
+    };
+
+    try {
+      const response = await fetch("http://localhost:8080/new/car", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const text = await response.text();
+      if (!response.ok) {
+        alert(`❌ Error registering car: ${text}`);
+        return;
+      }
+
+      alert(`✅ ${text}`);
+
+      const newCarEntry: UserCar = {
+        id: String(Date.now()),
+        licensePlate: newCar.licensePlate,
+        brand: newCar.brand,
+        color: newCar.color,
+      };
+
+      setUserCars((prev) => [...prev, newCarEntry]);
+      setIsAddCarDialogOpen(false);
+      setNewCar({ licensePlate: "", brand: "", color: "" });
+    } catch (error) {
+      console.error(error);
+      alert("⚠️ Error connecting to backend.");
+    }
   };
 
-  const handlePayRecord = (recordId: string) => {
-    const currentTime = getCurrentTime();
+  const handleDeleteCar = (carId: string) =>
+    setUserCars((prev) => prev.filter((c) => c.id !== carId));
 
-    setRecords(prevRecords =>
-      prevRecords.map(record =>
-        record.id === recordId
-          ? {
-              ...record,
-              status: 'completed' as const,
-              exitTime: currentTime
-            }
-          : record
+  const handlePayRecord = (id: string) => {
+    setRecords((prev) =>
+      prev.map((r) =>
+        r.id === id ? { ...r, status: "completed", exitTime: getCurrentTime() } : r
       )
     );
   };
 
   const handlePayAll = () => {
-    const currentTime = getCurrentTime();
-
-    setRecords(prevRecords =>
-      prevRecords.map(record =>
-        record.status === 'active'
-          ? {
-              ...record,
-              status: 'completed' as const,
-              exitTime: currentTime
-            }
-          : record
+    const time = getCurrentTime();
+    setRecords((prev) =>
+      prev.map((r) =>
+        r.status === "active" ? { ...r, status: "completed", exitTime: time } : r
       )
     );
   };
-
-  const handleAddCar = () => {
-    const car: UserCar = {
-      id: String(Date.now()),
-      licensePlate: newCar.licensePlate,
-      brand: newCar.brand,
-      color: newCar.color
-    };
-    setUserCars([...userCars, car]);
-    setIsAddCarDialogOpen(false);
-    setNewCar({ licensePlate: "", brand: "", color: "" });
-  };
-
-  const handleDeleteCar = (carId: string) => {
-    setUserCars(userCars.filter(car => car.id !== carId));
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}

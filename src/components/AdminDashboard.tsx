@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -24,85 +25,170 @@ interface AdminDashboardProps {
   onLogout: () => void;
 }
 
-const initialCars: ParkedCar[] = [
-  {
-    id: "1",
-    licensePlate: "ABC-1234",
-    ownerName: "John Doe",
-    ownerEmail: "john@example.com",
-    entryTime: "2025-10-12 08:30",
-    location: "A-23",
-    duration: "9h 42m",
-    currentCost: 58.20
-  },
-  {
-    id: "2",
-    licensePlate: "XYZ-5678",
-    ownerName: "Jane Smith",
-    ownerEmail: "jane@example.com",
-    entryTime: "2025-10-12 14:20",
-    location: "B-15",
-    duration: "3h 52m",
-    currentCost: 23.10
-  },
-  {
-    id: "3",
-    licensePlate: "DEF-9012",
-    ownerName: "Bob Johnson",
-    ownerEmail: "bob@example.com",
-    entryTime: "2025-10-12 15:00",
-    location: "C-08",
-    duration: "3h 12m",
-    currentCost: 19.20
-  },
-  {
-    id: "4",
-    licensePlate: "GHI-3456",
-    ownerName: "Alice Williams",
-    ownerEmail: "alice@example.com",
-    entryTime: "2025-10-12 16:45",
-    location: "A-17",
-    duration: "1h 27m",
-    currentCost: 8.70
-  }
-];
-
 export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
-  const [parkedCars, setParkedCars] = useState<ParkedCar[]>(initialCars);
+  const [parkedCars, setParkedCars] = useState<ParkedCar[]>([]);
   const [selectedCar, setSelectedCar] = useState<ParkedCar | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newCar, setNewCar] = useState({
     licensePlate: "",
-    location: ""
+    location: "",
   });
+  // 🚘 Fetch all active cars from backend
+  const fetchActiveCars = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("No token found. Please log in again.");
+      return;
+    }
 
-  const handleAddCar = () => {
-    const car: ParkedCar = {
-      id: String(Date.now()),
-      licensePlate: newCar.licensePlate,
-      ownerName: "Unknown",
-      ownerEmail: "unknown@example.com",
-      entryTime: new Date().toLocaleString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      }).replace(',', ''),
-      location: newCar.location,
-      duration: "0h 0m",
-      currentCost: 0
-    };
-    setParkedCars([...parkedCars, car]);
-    setIsAddDialogOpen(false);
-    setNewCar({ licensePlate: "", location: "" });
+    try {
+      const response = await fetch("http://localhost:8080/view/car/ActiveRegisters", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error fetching active cars: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // 🧠 Transform backend data into ParkedCar format
+      const formattedCars = await Promise.all(
+        data.map(async (car: any) => {
+          // Fetch owner info for each car
+          const ownerResponse = await fetch("http://localhost:8080/view/user", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ UserID: car.car.owner }),
+          });
+
+          let ownerData = { firstName: "Unknown", lastName: "", email: "unknown@example.com" };
+          if (ownerResponse.ok) {
+            ownerData = await ownerResponse.json();
+          }
+
+          return {
+            id: car._id,
+            licensePlate: car.car.placa,
+            ownerName: `${ownerData.firstName} ${ownerData.lastName}`,
+            ownerEmail: ownerData.email,
+            entryTime: new Date(car.entryTime).toLocaleString(),
+            location: car.parkingLocation,
+            duration: "—",
+            currentCost: car.amount || 0,
+          };
+        })
+      );
+
+      setParkedCars(formattedCars);
+    } catch (error) {
+      console.error("⚠️ Error fetching active cars:", error);
+      alert("Failed to load active cars.");
+    }
   };
 
-  const handleMarkAsExited = (carId: string) => {
-    setParkedCars(parkedCars.filter(car => car.id !== carId));
-    setSelectedCar(null);
+  // 🚙 Add new car entry
+  const handleAddCar = async (licensePlate: string, location: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("No token found. Please log in again.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8080/new/car/entry", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          Placa: licensePlate,
+          ParkingLocation: location,
+        }),
+      });
+
+      const text = await response.text();
+
+      if (!response.ok) {
+        alert(`❌ Error adding car: ${text}`);
+        return;
+      }
+
+      alert(`✅ ${text}`);
+
+      // 🔄 Refresh active cars
+      await fetchActiveCars();
+    } catch (error) {
+      console.error("⚠️ Error connecting to backend:", error);
+      alert("Error connecting to backend.");
+    }
   };
+
+  // 🚗 Mark car as exited
+  const handleMarkAsExited = async (licensePlate: string, location: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("No token found. Please log in again.");
+      return;
+    }
+
+    console.log(
+      "🚗 Sending car exit payload:",
+      JSON.stringify(
+        {
+          Placa: licensePlate,
+          ParkingLocation: location,
+        },
+        null,
+        2
+      )
+    );
+
+    try {
+      const response = await fetch("http://localhost:8080/new/car/exit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          Placa: licensePlate,
+          ParkingLocation: location,
+        }),
+      });
+
+      const text = await response.text();
+
+      if (!response.ok) {
+        alert(`❌ Error marking exit: ${text}`);
+        return;
+      }
+
+      alert(`🚙 ${text}`);
+
+      // 🔄 Refresh the list of active cars
+      await fetchActiveCars();
+
+      setSelectedCar(null);
+    } catch (error) {
+      console.error(error);
+      alert("⚠️ Error connecting to backend.");
+    }
+  };
+
+  // 🪄 Load cars when component mounts
+  useEffect(() => {
+    fetchActiveCars();
+  }, []);
+
 
   const totalRevenue = parkedCars.reduce((sum, car) => sum + car.currentCost, 0);
 
@@ -224,7 +310,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button onClick={handleAddCar} className="bg-primary hover:bg-primary/90">Register Car</Button>
+                    <Button onClick={() => handleAddCar(newCar.licensePlate, newCar.location)}className="bg-primary hover:bg-primary/90">Register Car</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -324,7 +410,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
                   <Button 
                     className="w-full" 
                     variant="destructive"
-                    onClick={() => handleMarkAsExited(selectedCar.id)}
+                    onClick={() => handleMarkAsExited(selectedCar.licensePlate, selectedCar.location)}
                   >
                     Mark as Exited
                   </Button>
