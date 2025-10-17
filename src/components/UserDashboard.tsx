@@ -103,7 +103,8 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
 
         if (!data.registers) return;
 
-        const mapped = data.registers.map((r: any) => {
+        // 📦 Mapeamos los registros de parqueo
+        const mappedRecords = data.registers.map((r: any) => {
           const entry = new Date(r.entryTime);
           const exit =
             r.exitTime && r.exitTime !== "0001-01-01T00:00:00Z"
@@ -131,7 +132,23 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
           };
         });
 
-        setRecords(mapped);
+        setRecords(mappedRecords);
+
+        // 🚗 Extraemos los carros únicos de esos registros
+        const uniqueCarsMap = new Map<string, UserCar>();
+        for (const r of data.registers) {
+          const c = r.car;
+          if (c && !uniqueCarsMap.has(c._id)) {
+            uniqueCarsMap.set(c._id, {
+              id: c._id,
+              licensePlate: c.placa,
+              brand: c.marca,
+              color: c.color,
+            });
+          }
+        }
+
+        setUserCars(Array.from(uniqueCarsMap.values()));
       } catch (err) {
         console.error("❌ Error fetching records:", err);
       }
@@ -139,6 +156,7 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
 
     fetchRecords();
   }, []);
+
 
   // 🧩 Add car to backend
   const handleAddCar = async () => {
