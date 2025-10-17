@@ -24,84 +24,106 @@ interface AdminDashboardProps {
   onLogout: () => void;
 }
 
-const initialCars: ParkedCar[] = [
-  {
-    id: "1",
-    licensePlate: "ABC-1234",
-    ownerName: "John Doe",
-    ownerEmail: "john@example.com",
-    entryTime: "2025-10-12 08:30",
-    location: "A-23",
-    duration: "9h 42m",
-    currentCost: 58.20
-  },
-  {
-    id: "2",
-    licensePlate: "XYZ-5678",
-    ownerName: "Jane Smith",
-    ownerEmail: "jane@example.com",
-    entryTime: "2025-10-12 14:20",
-    location: "B-15",
-    duration: "3h 52m",
-    currentCost: 23.10
-  },
-  {
-    id: "3",
-    licensePlate: "DEF-9012",
-    ownerName: "Bob Johnson",
-    ownerEmail: "bob@example.com",
-    entryTime: "2025-10-12 15:00",
-    location: "C-08",
-    duration: "3h 12m",
-    currentCost: 19.20
-  },
-  {
-    id: "4",
-    licensePlate: "GHI-3456",
-    ownerName: "Alice Williams",
-    ownerEmail: "alice@example.com",
-    entryTime: "2025-10-12 16:45",
-    location: "A-17",
-    duration: "1h 27m",
-    currentCost: 8.70
-  }
-];
-
 export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
-  const [parkedCars, setParkedCars] = useState<ParkedCar[]>(initialCars);
+  const [parkedCars, setParkedCars] = useState<ParkedCar[]>([]);
   const [selectedCar, setSelectedCar] = useState<ParkedCar | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newCar, setNewCar] = useState({
     licensePlate: "",
-    location: ""
+    location: "",
   });
 
-  const handleAddCar = () => {
-    const car: ParkedCar = {
-      id: String(Date.now()),
-      licensePlate: newCar.licensePlate,
-      ownerName: "Unknown",
-      ownerEmail: "unknown@example.com",
-      entryTime: new Date().toLocaleString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      }).replace(',', ''),
-      location: newCar.location,
-      duration: "0h 0m",
-      currentCost: 0
-    };
-    setParkedCars([...parkedCars, car]);
-    setIsAddDialogOpen(false);
-    setNewCar({ licensePlate: "", location: "" });
+  // Add new car (entry)
+  const handleAddCar = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("No token found. Please log in again.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8080/new/car/entry", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          Placa: newCar.licensePlate,
+          ParkingLocation: newCar.location,
+        }),
+      });
+
+      const text = await response.text();
+
+      if (!response.ok) {
+        alert(`Error registering car: ${text}`);
+        return;
+      }
+
+      alert(`${text}`);
+
+      // Update UI (add a new mock entry so user sees it instantly)
+      const car: ParkedCar = {
+        id: String(Date.now()),
+        licensePlate: newCar.licensePlate,
+        ownerName: "Unknown",
+        ownerEmail: "unknown@example.com",
+        entryTime: new Date().toLocaleString(),
+        location: newCar.location,
+        duration: "0h 0m",
+        currentCost: 0,
+      };
+      setParkedCars([...parkedCars, car]);
+      setIsAddDialogOpen(false);
+      setNewCar({ licensePlate: "", location: "" });
+    } catch (error) {
+      console.error(error);
+      alert(" Error connecting to backend.");
+    }
   };
 
-  const handleMarkAsExited = (carId: string) => {
-    setParkedCars(parkedCars.filter(car => car.id !== carId));
-    setSelectedCar(null);
+  // 🚗 Mark car as exited
+  const handleMarkAsExited = async (licensePlate: string, location: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("No token found. Please log in again.");
+      return;
+    }
+    console.log(" Sending car exit payload:", JSON.stringify({
+      Placa: licensePlate,
+      ParkingLocation: location
+    }, null, 2));
+
+
+    try {
+      const response = await fetch("http://localhost:8080/new/car/exit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          Placa: licensePlate,
+          ParkingLocation: location,
+        }),
+      });
+
+      const text = await response.text();
+
+      if (!response.ok) {
+        alert(` Error marking exit: ${text}`);
+        return;
+      }
+
+      alert(` ${text}`);
+
+      setParkedCars(parkedCars.filter((car) => car.licensePlate  !== licensePlate ));
+      setSelectedCar(null);
+    } catch (error) {
+      console.error(error);
+      alert("Error connecting to backend.");
+    }
   };
 
   const totalRevenue = parkedCars.reduce((sum, car) => sum + car.currentCost, 0);
@@ -324,7 +346,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
                   <Button 
                     className="w-full" 
                     variant="destructive"
-                    onClick={() => handleMarkAsExited(selectedCar.id)}
+                    onClick={() => handleMarkAsExited(selectedCar.licensePlate, selectedCar.location)}
                   >
                     Mark as Exited
                   </Button>

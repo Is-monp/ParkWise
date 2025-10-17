@@ -19,12 +19,15 @@ import {
 } from "./ui/select";
 import { ThemeToggle } from "./ThemeToggle";
 import { Car } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface AuthFormProps {
   onLogin: (email: string, role: "user" | "admin") => void;
 }
 
 export function AuthForm({ onLogin }: AuthFormProps) {
+  const navigate = useNavigate(); // 🚀 for navigation
+
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
@@ -32,9 +35,10 @@ export function AuthForm({ onLogin }: AuthFormProps) {
   const [signupName, setSignupName] = useState("");
   const [role, setRole] = useState<"user" | "admin">("user");
 
-  // 🔐 LOGIN
+  //  LOGIN
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       const response = await fetch("http://localhost:8080/auth/login", {
         method: "POST",
@@ -45,29 +49,64 @@ export function AuthForm({ onLogin }: AuthFormProps) {
         }),
       });
 
+      // Check if login failed
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Login failed:", errorText);
+        alert("Incorrect email or password ");
+        return;
+      }
+
       const data = await response.json();
       console.log("Login response:", data);
 
-      // Si el backend devuelve solo el token
-      const token = data.token || data || data.access_token;
-
-      if (token) {
-        localStorage.setItem("token", token);
-        console.log("Token saved:", token);
-        alert("Login successful!");
-        onLogin(loginEmail, role);
-      } else {
+      const token = data.token || data.access_token || data;
+      if (!token) {
         alert("No token found in response :(");
+        return;
       }
 
+      // Save token
+      localStorage.setItem("token", token);
+      console.log("Token saved:", token);
 
-      alert("Login successful!");
-      onLogin(loginEmail, role);
+      // 🔍 Check role
+      const roleResponse = await fetch("http://localhost:8080/view/user/isAdmin", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!roleResponse.ok) {
+        const errorText = await roleResponse.text();
+        console.error("Role check failed:", errorText);
+        alert("Could not verify user role");
+        return;
+      }
+
+      const roleData = await roleResponse.json();
+      console.log("Role check:", roleData);
+
+      if (roleData.isAdmin) {
+        setRole("admin");
+        alert("Welcome, admin!");
+        onLogin(loginEmail, "admin");
+        navigate("/admin/dashboard");
+      } else {
+        setRole("user");
+        alert("Welcome, user!");
+        onLogin(loginEmail, "user");
+        navigate("/user/dashboard");
+      }
+
     } catch (error) {
       alert("Error connecting to backend :(");
       console.error(error);
     }
   };
+
 
   // 🧾 SIGNUP
   const handleSignup = async (e: React.FormEvent) => {
