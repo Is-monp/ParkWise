@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -32,9 +33,69 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
     licensePlate: "",
     location: "",
   });
+  // 🚘 Fetch all active cars from backend
+  const fetchActiveCars = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("No token found. Please log in again.");
+      return;
+    }
 
-  // Add new car (entry)
-  const handleAddCar = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/view/car/ActiveRegisters", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error fetching active cars: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // 🧠 Transform backend data into ParkedCar format
+      const formattedCars = await Promise.all(
+        data.map(async (car: any) => {
+          // Fetch owner info for each car
+          const ownerResponse = await fetch("http://localhost:8080/view/user", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ UserID: car.car.owner }),
+          });
+
+          let ownerData = { firstName: "Unknown", lastName: "", email: "unknown@example.com" };
+          if (ownerResponse.ok) {
+            ownerData = await ownerResponse.json();
+          }
+
+          return {
+            id: car._id,
+            licensePlate: car.car.placa,
+            ownerName: `${ownerData.firstName} ${ownerData.lastName}`,
+            ownerEmail: ownerData.email,
+            entryTime: new Date(car.entryTime).toLocaleString(),
+            location: car.parkingLocation,
+            duration: "—",
+            currentCost: car.amount || 0,
+          };
+        })
+      );
+
+      setParkedCars(formattedCars);
+    } catch (error) {
+      console.error("⚠️ Error fetching active cars:", error);
+      alert("Failed to load active cars.");
+    }
+  };
+
+  // 🚙 Add new car entry
+  const handleAddCar = async (licensePlate: string, location: string) => {
     const token = localStorage.getItem("token");
     if (!token) {
       alert("No token found. Please log in again.");
@@ -49,37 +110,25 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          Placa: newCar.licensePlate,
-          ParkingLocation: newCar.location,
+          Placa: licensePlate,
+          ParkingLocation: location,
         }),
       });
 
       const text = await response.text();
 
       if (!response.ok) {
-        alert(`Error registering car: ${text}`);
+        alert(`❌ Error adding car: ${text}`);
         return;
       }
 
-      alert(`${text}`);
+      alert(`✅ ${text}`);
 
-      // Update UI (add a new mock entry so user sees it instantly)
-      const car: ParkedCar = {
-        id: String(Date.now()),
-        licensePlate: newCar.licensePlate,
-        ownerName: "Unknown",
-        ownerEmail: "unknown@example.com",
-        entryTime: new Date().toLocaleString(),
-        location: newCar.location,
-        duration: "0h 0m",
-        currentCost: 0,
-      };
-      setParkedCars([...parkedCars, car]);
-      setIsAddDialogOpen(false);
-      setNewCar({ licensePlate: "", location: "" });
+      // 🔄 Refresh active cars
+      await fetchActiveCars();
     } catch (error) {
-      console.error(error);
-      alert(" Error connecting to backend.");
+      console.error("⚠️ Error connecting to backend:", error);
+      alert("Error connecting to backend.");
     }
   };
 
@@ -90,11 +139,18 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
       alert("No token found. Please log in again.");
       return;
     }
-    console.log(" Sending car exit payload:", JSON.stringify({
-      Placa: licensePlate,
-      ParkingLocation: location
-    }, null, 2));
 
+    console.log(
+      "🚗 Sending car exit payload:",
+      JSON.stringify(
+        {
+          Placa: licensePlate,
+          ParkingLocation: location,
+        },
+        null,
+        2
+      )
+    );
 
     try {
       const response = await fetch("http://localhost:8080/new/car/exit", {
@@ -112,19 +168,27 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
       const text = await response.text();
 
       if (!response.ok) {
-        alert(` Error marking exit: ${text}`);
+        alert(`❌ Error marking exit: ${text}`);
         return;
       }
 
-      alert(` ${text}`);
+      alert(`🚙 ${text}`);
 
-      setParkedCars(parkedCars.filter((car) => car.licensePlate  !== licensePlate ));
+      // 🔄 Refresh the list of active cars
+      await fetchActiveCars();
+
       setSelectedCar(null);
     } catch (error) {
       console.error(error);
-      alert("Error connecting to backend.");
+      alert("⚠️ Error connecting to backend.");
     }
   };
+
+  // 🪄 Load cars when component mounts
+  useEffect(() => {
+    fetchActiveCars();
+  }, []);
+
 
   const totalRevenue = parkedCars.reduce((sum, car) => sum + car.currentCost, 0);
 
@@ -246,7 +310,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button onClick={handleAddCar} className="bg-primary hover:bg-primary/90">Register Car</Button>
+                    <Button onClick={() => handleAddCar(newCar.licensePlate, newCar.location)}className="bg-primary hover:bg-primary/90">Register Car</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
