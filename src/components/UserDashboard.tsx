@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+const apiUrl = process.env.REACT_APP_API_URL;
 import {
   Card,
   CardContent,
@@ -96,7 +97,7 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
       if (!token) return;
 
       try {
-        const res = await fetch("http://localhost:8080/view/car/UserRegisters", {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/view/car/UserRegisters`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -173,7 +174,7 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
     };
 
     try {
-      const response = await fetch("http://localhost:8080/new/car", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/new/car`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -184,11 +185,11 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
 
       const text = await response.text();
       if (!response.ok) {
-        alert(`❌ Error registering car: ${text}`);
+        alert(`Error registering car: ${text}`);
         return;
       }
 
-      alert(`✅ ${text}`);
+      alert(`${text}`);
 
       const newCarEntry: UserCar = {
         id: String(Date.now()),

@@ -1,4 +1,5 @@
 import { useState } from "react";
+const apiUrl = process.env.REACT_APP_API_URL;
 import {
   Card,
   CardContent,
@@ -40,7 +41,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:8080/auth/login", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -71,7 +72,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
       console.log("Token saved:", token);
 
       // 🔍 Check role
-      const roleResponse = await fetch("http://localhost:8080/view/user/isAdmin", {
+      const roleResponse = await fetch(`${process.env.REACT_APP_API_URL}/view/user/isAdmin`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +113,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:8080/auth/signup", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

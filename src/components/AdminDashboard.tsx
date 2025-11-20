@@ -8,6 +8,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { LogOut, Plus, Car, Clock, DollarSign, MapPin, Users, ParkingSquare } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+const apiUrl = process.env.REACT_APP_API_URL;
 
 interface ParkedCar {
   id: string;
@@ -42,7 +43,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/view/car/ActiveRegisters", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/view/car/ActiveRegisters`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -60,7 +61,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
       const formattedCars = await Promise.all(
         data.map(async (car: any) => {
           // Fetch owner info for each car
-          const ownerResponse = await fetch("http://localhost:8080/view/user", {
+          const ownerResponse = await fetch(`${process.env.REACT_APP_API_URL}/view/user`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -103,7 +104,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/new/car/entry", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/new/car/entry`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -153,7 +154,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
     );
 
     try {
-      const response = await fetch("http://localhost:8080/new/car/exit", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/new/car/exit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
