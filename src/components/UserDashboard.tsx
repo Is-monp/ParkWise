@@ -33,11 +33,11 @@ import {
   TrendingUp,
   TrendingDown,
   Clock,
-  Car,
   Plus,
   Trash2,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { useTheme } from "./ThemeProvider";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 interface ParkingRecord {
@@ -64,6 +64,7 @@ interface UserDashboardProps {
 }
 
 export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
+  const { theme } = useTheme();
   const [records, setRecords] = useState<ParkingRecord[]>([]);
   const [userCars, setUserCars] = useState<UserCar[]>([]);
   const [isAddCarDialogOpen, setIsAddCarDialogOpen] = useState(false);
@@ -233,9 +234,11 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Car className="h-8 w-8 text-primary" />
-              </div>
+              <img
+                src={theme === "dark" ? "/darkmode.png" : "/lightmode.png"}
+                alt="ParkWise Logo"
+                className="h-16 w-16 object-contain"
+              />
               <div>
                 <h1 className="text-xl sm:text-2xl">Overview</h1>
                 <p className="text-sm text-muted-foreground mt-1">{userEmail}</p>

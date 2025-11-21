@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { ThemeToggle } from "./ThemeToggle";
-import { Car } from "lucide-react";
+import { useTheme } from "./ThemeProvider";
 import { useNavigate } from "react-router-dom";
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -29,6 +29,7 @@ interface AuthFormProps {
 
 export function AuthForm({ onLogin }: AuthFormProps) {
   const navigate = useNavigate(); // for navigation
+  const { theme } = useTheme();
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -149,9 +150,11 @@ export function AuthForm({ onLogin }: AuthFormProps) {
 
       <Card className="w-full max-w-md shadow-2xl border-border/50 backdrop-blur-sm bg-card/95 relative z-10">
         <CardHeader className="space-y-4 text-center pb-8">
-          <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-2">
-            <Car className="h-8 w-8 text-primary" />
-          </div>
+          <img
+            src={theme === "dark" ? "/darkmode.png" : "/lightmode.png"}
+            alt="ParkWise Logo"
+            className="mx-auto h-16 w-16 object-contain mb-2"
+          />
           <div>
             <CardTitle className="text-2xl">ParkWise</CardTitle>
             <CardDescription className="mt-2">
@@ -190,23 +193,6 @@ export function AuthForm({ onLogin }: AuthFormProps) {
                     onChange={(e) => setLoginPassword(e.target.value)}
                     required
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-role">Role</Label>
-                  <Select
-                    value={role}
-                    onValueChange={(value) =>
-                      setRole(value as "user" | "admin")
-                    }
-                  >
-                    <SelectTrigger id="login-role">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
                 <Button type="submit" className="w-full">
                   Sign In
@@ -250,23 +236,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-role">Role</Label>
-                  <Select
-                    value={role}
-                    onValueChange={(value) =>
-                      setRole(value as "user" | "admin")
-                    }
-                  >
-                    <SelectTrigger id="signup-role">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                
                 <Button type="submit" className="w-full">
                   Create Account
                 </Button>

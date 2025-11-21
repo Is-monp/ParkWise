@@ -8,6 +8,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { LogOut, Plus, Car, Clock, DollarSign, MapPin, Users, ParkingSquare } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { useTheme } from "./ThemeProvider";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 
@@ -28,6 +29,7 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
+  const { theme } = useTheme();
   const [parkedCars, setParkedCars] = useState<ParkedCar[]>([]);
   const [selectedCar, setSelectedCar] = useState<ParkedCar | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -201,9 +203,11 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Car className="h-8 w-8 text-primary" />
-              </div>
+              <img
+                src={theme === "dark" ? "/darkmode.png" : "/lightmode.png"}
+                alt="ParkWise Logo"
+                className="h-16 w-16 object-contain"
+              />
               <div>
                 <h1 className="text-xl sm:text-2xl">Overview</h1>
                 <p className="text-sm text-muted-foreground mt-1">{userEmail}</p>
