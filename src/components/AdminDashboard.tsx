@@ -35,7 +35,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
     licensePlate: "",
     location: "",
   });
-  // 🚘 Fetch all active cars from backend
+  // Fetch all active cars from backend
   const fetchActiveCars = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -58,7 +58,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
 
       const data = await response.json();
 
-      // 🧠 Transform backend data into ParkedCar format
+      // Transform backend data into ParkedCar format
       const formattedCars = await Promise.all(
         data.map(async (car: any) => {
           // Fetch owner info for each car
@@ -91,12 +91,12 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
 
       setParkedCars(formattedCars);
     } catch (error) {
-      console.error("⚠️ Error fetching active cars:", error);
+      console.error("Error fetching active cars:", error);
       alert("Failed to load active cars.");
     }
   };
 
-  // 🚙 Add new car entry
+  // Add new car entry
   const handleAddCar = async (licensePlate: string, location: string) => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -120,21 +120,21 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
       const text = await response.text();
 
       if (!response.ok) {
-        alert(`❌ Error adding car: ${text}`);
+        alert(`Error adding car: ${text}`);
         return;
       }
 
-      alert(`✅ ${text}`);
+      alert(`${text}`);
 
       // 🔄 Refresh active cars
       await fetchActiveCars();
     } catch (error) {
-      console.error("⚠️ Error connecting to backend:", error);
+      console.error("Error connecting to backend:", error);
       alert("Error connecting to backend.");
     }
   };
 
-  // 🚗 Mark car as exited
+  // Mark car as exited
   const handleMarkAsExited = async (licensePlate: string, location: string) => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -143,7 +143,7 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
     }
 
     console.log(
-      "🚗 Sending car exit payload:",
+      "Sending car exit payload:",
       JSON.stringify(
         {
           Placa: licensePlate,
@@ -170,23 +170,23 @@ export function AdminDashboard({ userEmail, onLogout }: AdminDashboardProps) {
       const text = await response.text();
 
       if (!response.ok) {
-        alert(`❌ Error marking exit: ${text}`);
+        alert(`Error marking exit: ${text}`);
         return;
       }
 
-      alert(`🚙 ${text}`);
+      alert(`${text}`);
 
-      // 🔄 Refresh the list of active cars
+      // Refresh the list of active cars
       await fetchActiveCars();
 
       setSelectedCar(null);
     } catch (error) {
       console.error(error);
-      alert("⚠️ Error connecting to backend.");
+      alert("Error connecting to backend.");
     }
   };
 
-  // 🪄 Load cars when component mounts
+  // Load cars when component mounts
   useEffect(() => {
     fetchActiveCars();
   }, []);

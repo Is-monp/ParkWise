@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-const apiUrl = process.env.REACT_APP_API_URL;
 import {
   Card,
   CardContent,
@@ -91,7 +90,7 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
       })
       .replace(",", "");
 
-  // ✅ FETCH records from backend
+  // FETCH records from backend
   useEffect(() => {
     const fetchRecords = async () => {
       const token = localStorage.getItem("token");
@@ -105,7 +104,7 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
 
         if (!data.registers) return;
 
-        // 📦 Mapeamos los registros de parqueo
+        // Mapeamos los registros de parqueo
         const mappedRecords = data.registers.map((r: any) => {
           const entry = new Date(r.entryTime);
           const exit =
@@ -136,7 +135,7 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
 
         setRecords(mappedRecords);
 
-        // 🚗 Extraemos los carros únicos de esos registros
+        // Extraemos los carros únicos de esos registros
         const uniqueCarsMap = new Map<string, UserCar>();
         for (const r of data.registers) {
           const c = r.car;
@@ -152,7 +151,7 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
 
         setUserCars(Array.from(uniqueCarsMap.values()));
       } catch (err) {
-        console.error("❌ Error fetching records:", err);
+        console.error("Error fetching records:", err);
       }
     };
 
@@ -160,11 +159,11 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
   }, []);
 
 
-  // 🧩 Add car to backend
+  // Add car to backend
   const handleAddCar = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("⚠️ No token found. Please log in again.");
+      alert("No token found. Please log in again.");
       return;
     }
 
@@ -204,7 +203,7 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
       setNewCar({ licensePlate: "", brand: "", color: "" });
     } catch (error) {
       console.error(error);
-      alert("⚠️ Error connecting to backend.");
+      alert("Error connecting to backend.");
     }
   };
 

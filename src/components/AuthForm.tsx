@@ -1,5 +1,4 @@
 import { useState } from "react";
-const apiUrl = process.env.REACT_APP_API_URL;
 import {
   Card,
   CardContent,
@@ -29,7 +28,7 @@ interface AuthFormProps {
 }
 
 export function AuthForm({ onLogin }: AuthFormProps) {
-  const navigate = useNavigate(); // 🚀 for navigation
+  const navigate = useNavigate(); // for navigation
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -73,7 +72,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
       localStorage.setItem("token", token);
       console.log("Token saved:", token);
 
-      // 🔍 Check role
+      // Check role
       const roleResponse = await fetch(`${apiUrl}/view/user/isAdmin`, {
         method: "GET",
         headers: {
@@ -111,7 +110,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
   };
 
 
-  // 🧾 SIGNUP
+  // SIGNUP
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
