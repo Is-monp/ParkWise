@@ -38,6 +38,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 interface ParkingRecord {
   id: string;
@@ -96,7 +97,7 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
       if (!token) return;
 
       try {
-        const res = await fetch("http://localhost:8080/view/car/UserRegisters", {
+        const res = await fetch(`${apiUrl}/view/car/UserRegisters`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -173,7 +174,7 @@ export function UserDashboard({ userEmail, onLogout }: UserDashboardProps) {
     };
 
     try {
-      const response = await fetch("http://localhost:8080/new/car", {
+      const response = await fetch(`${apiUrl}/new/car`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

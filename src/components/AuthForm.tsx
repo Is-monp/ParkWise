@@ -20,6 +20,8 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { Car } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+const apiUrl = import.meta.env.VITE_API_URL;
+
 
 interface AuthFormProps {
   onLogin: (email: string, role: "user" | "admin") => void;
@@ -40,7 +42,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:8080/auth/login", {
+      const response = await fetch(`${apiUrl}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -71,7 +73,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
       console.log("Token saved:", token);
 
       // 🔍 Check role
-      const roleResponse = await fetch("http://localhost:8080/view/user/isAdmin", {
+      const roleResponse = await fetch(`${apiUrl}/view/user/isAdmin`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +114,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:8080/auth/signup", {
+      const response = await fetch(`${apiUrl}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
